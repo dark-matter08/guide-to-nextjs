@@ -1,9 +1,12 @@
-import type { NextPage } from 'next'
-import Head from 'next/head'
-import Image from 'next/image'
-import styles from '../styles/Home.module.css'
+import type { GetStaticProps, NextPage } from "next";
+import Head from "next/head";
+import Image from "next/image";
+import Link from "next/link";
+import styles from "../styles/Home.module.css";
+import { Character, GetCharacterResults } from "../types";
+import ImageLoader from "../image_loader";
 
-const Home: NextPage = () => {
+const Home: NextPage<{ characters: Character[] }> = ({ characters }) => {
   return (
     <div className={styles.container}>
       <Head>
@@ -12,15 +15,42 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      
+      <h4>DB_CONNECT: {process.env.NEXT_PUBLIC_DB_CONNECT}</h4>
+      <hr />
+      {characters.map((character) => {
+        return (
 
-      
+          <div key={character.id}>
+            <Link href={`/characters/${character.id}`}>
+              <a>
+                <h3>{character.name}</h3>
+              </a>
+            </Link>
+            <Image
+              loader={ImageLoader}
+              unoptimized
+              src={character.image}
+              alt={character.name}
+              width="200"
+              height="200"
+            />
+            
+          </div>
+        );
+      })}
     </div>
-  )
-}
+  );
+};
 
-export const getStaticProps = async () => {
-  
-}
+export const getStaticProps: GetStaticProps = async (context) => {
+  const res = await fetch("https://rickandmortyapi.com/api/character");
+  const { results }: GetCharacterResults = await res.json();
 
-export default Home
+  return {
+    props: {
+      characters: results,
+    },
+  };
+};
+
+export default Home;
